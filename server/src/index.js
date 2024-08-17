@@ -12,7 +12,7 @@ import { fileURLToPath } from "url";
 
 // Initialize express app
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 3001;
 
 // Create __dirname for ES Modules
 const __filename = fileURLToPath(import.meta.url);
