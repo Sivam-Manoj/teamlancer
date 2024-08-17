@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { FacebookIcon, GitHubIcon, GoogleIcon } from "../../icons/SvgIcons";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useLoginApiMutation } from "../../store/api/auth/authUserApiSlice";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
@@ -39,7 +39,9 @@ const LoginPage = () => {
   };
 
   const isFormValid = email !== "" && password !== "";
-
+  if (isLoggedIn) {
+    return <Navigate to="/" replace />;
+  }
   return (
     <div
       className="min-h-screen flex justify-center items-center px-4"

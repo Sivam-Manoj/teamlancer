@@ -1,4 +1,4 @@
-import Cart from "../../components/inbox/cart";
+import Cart from "../../components/inbox/Cart";
 
 const InboxPage = () => {
   return (
