@@ -1,6 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useSendProposalApiMutation } from "../../store/api/post/postApiSlice";
+import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
 
 // Define animation variants
 const cardVariants = {
@@ -14,6 +18,7 @@ const buttonVariants = {
 };
 
 interface PostProps {
+  user: string;
   imageurl: string;
   postId: string;
   firstname: string;
@@ -29,9 +34,11 @@ interface PostProps {
   updatedAt: string;
   timeAgo: string;
   deadline: string;
+  userId: string;
 }
 
 const Post: React.FC<PostProps> = ({
+  user,
   imageurl,
   firstname,
   lastname,
@@ -41,7 +48,20 @@ const Post: React.FC<PostProps> = ({
   createdAt,
   timeAgo,
   deadline,
+  userId,
 }) => {
+  const [sendProposalApi, { isLoading }] = useSendProposalApiMutation();
+  const userLoginId = useSelector((state: RootState) => state.auth.userLoginId);
+  const handleSendProposal = async () => {
+    try {
+      await sendProposalApi(postId).unwrap();
+      toast.success("Proposal sent successfully");
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to send proposal");
+    }
+  };
+  const authId = userLoginId;
   return (
     <motion.div
       variants={cardVariants}
@@ -51,15 +71,19 @@ const Post: React.FC<PostProps> = ({
       className="max-w-sm md:max-w-4xl w-full bg-slate-100 p-6 rounded-3xl shadow-lg mx-auto md:ml-[25%] mt-6 transition-all duration-300"
     >
       <div className="flex items-center mb-4">
-        <img
-          src={imageurl}
-          alt={firstname}
-          className="w-12 h-12 md:w-20 md:h-20 rounded-full border-2 object-cover border-gray-300 mr-4"
-        />
+        <Link to={`/user/${user}`}>
+          <img
+            src={imageurl}
+            alt={firstname}
+            className="w-12 h-12 md:w-20 md:h-20 rounded-full border-2 object-cover border-gray-300 mr-4"
+          />
+        </Link>
         <div>
-          <h4 className="font-semibold text-md -mt-5 md:text-lg">
-            {firstname} {lastname}
-          </h4>
+          <Link to={`/user/${user}`}>
+            <h4 className="font-semibold text-md -mt-5 md:text-lg">
+              {firstname} {lastname}
+            </h4>
+          </Link>
           <div className="text-xs md:text-sm text-gray-500">
             <div className="flex justify-between gap-[8rem]">
               <span>{new Date(createdAt).toLocaleDateString()}</span>
@@ -88,11 +112,21 @@ const Post: React.FC<PostProps> = ({
               </button>
             </Link>
           </motion.div>
-          <motion.div variants={buttonVariants} whileHover="hover">
-            <button className="bg-blue-500 text-white text-xs md:text-sm py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors duration-300">
-              Send Proposal
-            </button>
-          </motion.div>
+          {authId == user ? (
+            ""
+          ) : (
+            <motion.div variants={buttonVariants} whileHover="hover">
+              <button
+                className={`bg-blue-500 text-white text-xs md:text-sm py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors duration-300 ${
+                  authId === userId ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                onClick={handleSendProposal}
+                disabled={authId === user.toString() || isLoading}
+              >
+                {isLoading ? "Loading" : "Send Proposal"}
+              </button>
+            </motion.div>
+          )}
         </div>
       </div>
     </motion.div>

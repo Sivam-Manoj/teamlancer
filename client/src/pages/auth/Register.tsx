@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FacebookIcon, GitHubIcon, GoogleIcon } from "../../icons/SvgIcons";
+
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
@@ -36,7 +36,8 @@ const Register = () => {
       dispatch(login(response));
       toast.success("Registration successful");
       navigate("/configure");
-    } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
       toast.error("Registration failed");
     }
   };
@@ -162,38 +163,6 @@ const Register = () => {
             {isLoading ? "Signing up..." : "Sign Up"}
           </motion.button>
         </form>
-
-        <div className="my-6 text-center text-gray-500">or Sign up with</div>
-
-        <div className="space-y-4">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center justify-center w-full bg-white border border-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-200"
-            onClick={() => console.log("Sign up with Google")}
-          >
-            <GoogleIcon />
-            Sign up with Google
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center justify-center w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200"
-            onClick={() => console.log("Sign up with Facebook")}
-          >
-            <FacebookIcon />
-            Sign up with Facebook
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center justify-center w-full bg-gray-800 text-white py-2 rounded-lg font-semibold hover:bg-gray-900 transition duration-200"
-            onClick={() => console.log("Sign up with GitHub")}
-          >
-            <GitHubIcon />
-            Sign up with GitHub
-          </motion.button>
-        </div>
 
         <div className="mt-6 text-center">
           <p className="text-gray-500">

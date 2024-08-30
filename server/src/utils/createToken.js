@@ -6,7 +6,7 @@ const createToken = (id, res, next) => {
   try {
     const payload = { id };
     const token = sign(payload, process.env.JWT_SECRET_KEY, {
-      expiresIn: "1h",
+      expiresIn: "24h",
     });
 
     res.cookie("token", token, {

@@ -1,12 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { FaLinkedin, FaGithub } from "react-icons/fa";
 import { HiOutlineDocumentText } from "react-icons/hi";
-import { useGetUserProfileApiQuery } from "../../store/api/user/userApiSlice";
+import {
+  useGetUserProfileApiQuery,
+  useUpdateUserProfileApiMutation,
+} from "../../store/api/user/userApiSlice";
+import { toast } from "react-toastify";
 
 interface Profile {
-  image: string;
+  image?: FileList | null; // Changed to File
+  user: string;
   imageurl: string;
   firstname: string;
   lastname: string;
@@ -17,49 +22,127 @@ interface Profile {
   skills: string[];
   linkedin?: string;
   github?: string;
-  resume?: string;
+  resumeurl?: string;
+  pdf?: FileList; // Changed to FileLis
 }
 
 const ProfilePage: React.FC = () => {
-  const { data: user, isError, isLoading } = useGetUserProfileApiQuery("");
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const {
+    data: user,
+    isError,
+    isLoading,
+    refetch,
+  } = useGetUserProfileApiQuery("");
+  const [updateUserProfile] = useUpdateUserProfileApiMutation();
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [newSkill, setNewSkill] = useState<string>("");
-  const { handleSubmit, register } = useForm<Profile>({
-    defaultValues: profile || {},
+  const { handleSubmit, register, setValue } = useForm<Profile>({
+    defaultValues: user || {
+      imageurl: "",
+      user: "",
+      firstname: "",
+      lastname: "",
+      address: "",
+      district: "",
+      postalcode: 0,
+      about: "",
+      skills: [],
+    },
   });
 
-  useEffect(() => {
-    if (user) {
-      setProfile(user);
-    }
-  }, [user]);
+  const onSubmit = async (data: Profile) => {
+    try {
+      const formData = new FormData();
 
-  const onSubmit = (data: Profile) => {
-    console.log("Updated profile data:", data);
-    setProfile(data);
-    setIsEditing(false);
+      // Append image file if present
+      if (data.image && data.image.length > 0) {
+        formData.append("image", data.image[0]);
+      }
+
+      // Append resume file if present
+      if (data.pdf && data.pdf.length > 0) {
+        formData.append("pdf", data.pdf[0]);
+      }
+
+      // Append other fields
+      formData.append("user", data.user);
+      formData.append("firstname", data.firstname);
+      formData.append("lastname", data.lastname);
+      formData.append("address", data.address);
+      formData.append("district", data.district);
+      formData.append("postalcode", String(data.postalcode));
+      formData.append("about", data.about);
+      formData.append("skills", JSON.stringify(data.skills));
+      if (data.linkedin) formData.append("linkedin", data.linkedin);
+      if (data.github) formData.append("github", data.github);
+
+      await updateUserProfile(formData).unwrap();
+      toast.success("Profile updated successfully");
+      setIsEditing(false);
+      refetch();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to update profile");
+    }
   };
 
   const handleAddSkill = () => {
-    if (newSkill && profile && !profile.skills.includes(newSkill)) {
-      setProfile((prev) => ({
-        ...prev!,
-        skills: [...prev!.skills, newSkill],
-      }));
+    if (newSkill && user && !user.skills.includes(newSkill)) {
+      setValue("skills", [...user.skills, newSkill]); // Use setValue to update form value
       setNewSkill("");
     }
   };
 
   const handleRemoveSkill = (skill: string) => {
-    setProfile((prev) => ({
-      ...prev!,
-      skills: prev!.skills.filter((s) => s !== skill),
-    }));
+    setValue(
+      "skills",
+      user.skills.filter((s: string) => s !== skill)
+    ); // Use setValue to update form value
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (isError || !profile) return <div>Error loading profile</div>;
+  if (isLoading) {
+    return (
+      <motion.div
+        className="flex items-center justify-center h-screen"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-opacity-50"></div>
+          <p className="mt-4 text-xl font-semibold text-blue-500">
+            Loading profile...
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (isError || !user) {
+    return (
+      <motion.div
+        className="flex items-center justify-center h-screen"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="text-center">
+          <motion.div
+            className="text-red-500 text-6xl"
+            animate={{
+              rotate: [0, -10, 10, -10, 0],
+              transition: { repeat: Infinity, duration: 1.5 },
+            }}
+          >
+            &#9888;
+          </motion.div>
+          <p className="mt-4 text-xl font-semibold text-red-500">
+            Error fetching profile.
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
@@ -74,20 +157,18 @@ const ProfilePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="flex flex-col items-center md:items-start">
               <img
-                src={profile.imageurl}
+                src={user.imageurl}
                 alt={`${user.firstname} ${user.lastname}`}
                 className="w-24 h-24 rounded-full object-cover mb-4"
               />
               {isEditing && (
                 <input
                   type="file"
+                  {...register("image", {
+                    required: "Profile image is required",
+                  })}
+                  className="p-2 border rounded-md"
                   accept="image/*"
-                  className="mt-2 border rounded-md p-2"
-                  onChange={(e) => {
-                    if (e.target.files) {
-                      console.log("New profile image:", e.target.files[0]);
-                    }
-                  }}
                 />
               )}
             </div>
@@ -96,20 +177,23 @@ const ProfilePage: React.FC = () => {
                 <>
                   <input
                     {...register("firstname")}
+                    placeholder="Enter first name"
                     className="text-2xl font-bold mb-1 border-b-2 border-gray-300 focus:outline-none focus:border-blue-500 w-full"
                   />
                   <input
                     {...register("lastname")}
+                    placeholder="Enter last name"
                     className="text-2xl font-bold mb-2 border-b-2 border-gray-300 focus:outline-none focus:border-blue-500 w-full"
                   />
                 </>
               ) : (
                 <>
                   <h1 className="text-2xl font-bold mb-1">
-                    {profile.firstname} {profile.lastname}
+                    {user.firstname} {user.lastname}
                   </h1>
+
                   <p className="text-gray-600 mb-2">
-                    {profile.address}, {profile.district}, {profile.postalcode}
+                    {user.address}, {user.district}, {user.postalcode}
                   </p>
                 </>
               )}
@@ -130,7 +214,7 @@ const ProfilePage: React.FC = () => {
                 className="w-full h-24 p-2 border rounded-md resize-none"
               />
             ) : (
-              <p>{profile.about}</p>
+              <p>{user.about}</p>
             )}
           </motion.div>
 
@@ -143,23 +227,27 @@ const ProfilePage: React.FC = () => {
           >
             <h2 className="text-xl font-semibold mb-2">Skills</h2>
             <div className="flex flex-wrap gap-2 mb-4">
-              {profile.skills[0].split(",").map((skill, index) => (
-                <span
-                  key={index}
-                  className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full border border-blue-300 flex items-center"
-                >
-                  {skill}
-                  {isEditing && (
-                    <button
-                      type="button"
-                      className="ml-2 text-red-600"
-                      onClick={() => handleRemoveSkill(skill)}
-                    >
-                      x
-                    </button>
-                  )}
-                </span>
-              ))}
+              {user.skills && user.skills.length > 0 ? (
+                user.skills.map((skill: string, index: number) => (
+                  <span
+                    key={index}
+                    className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full border border-blue-300 flex items-center"
+                  >
+                    {skill}
+                    {isEditing && (
+                      <button
+                        type="button"
+                        className="ml-2 text-red-600"
+                        onClick={() => handleRemoveSkill(skill)}
+                      >
+                        x
+                      </button>
+                    )}
+                  </span>
+                ))
+              ) : (
+                <p>No skills added yet.</p>
+              )}
             </div>
             {isEditing && (
               <div className="flex gap-2">
@@ -183,7 +271,7 @@ const ProfilePage: React.FC = () => {
 
           {/* Social Media Links */}
           <motion.div
-            className="bg-gray-100 p-4 rounded-lg mb-6 flex flex-col gap-4 md:flex-row md:items-center"
+            className="bg-gray-100 p-4 rounded-lg mb-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -205,18 +293,18 @@ const ProfilePage: React.FC = () => {
                 </>
               ) : (
                 <>
-                  {profile.linkedin && (
+                  {user.linkedin && (
                     <a
-                      href={profile.linkedin}
+                      href={user.linkedin}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
                       <FaLinkedin className="text-blue-700 text-2xl" />
                     </a>
                   )}
-                  {profile.github && (
+                  {user.github && (
                     <a
-                      href={profile.github}
+                      href={user.github}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -229,7 +317,7 @@ const ProfilePage: React.FC = () => {
           </motion.div>
 
           {/* Resume */}
-          {profile.resume && (
+          {user.resumeurl && (
             <motion.div
               className="bg-gray-100 p-4 rounded-lg mb-6"
               initial={{ opacity: 0, y: 20 }}
@@ -238,7 +326,7 @@ const ProfilePage: React.FC = () => {
             >
               <h2 className="text-xl font-semibold mb-2">Resume</h2>
               <a
-                href={profile.resume}
+                href={user.resumeurl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center text-blue-600 hover:underline"
@@ -259,13 +347,9 @@ const ProfilePage: React.FC = () => {
               <h2 className="text-xl font-semibold mb-2">Upload New Resume</h2>
               <input
                 type="file"
-                accept=".pdf,.doc,.docx"
+                accept=".pdf"
                 className="w-full border rounded-md p-2"
-                onChange={(e) => {
-                  if (e.target.files) {
-                    console.log("New resume file:", e.target.files[0]);
-                  }
-                }}
+                {...register("pdf")}
               />
             </motion.div>
           )}

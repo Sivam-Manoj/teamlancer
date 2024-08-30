@@ -10,10 +10,12 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PostsPage from "./pages/post/PostsPage";
 import TeamsPage from "./pages/teams/TeamsPage";
-import InboxPage from "./pages/inbox/InboxPage";
+
 import SingleProjectPage from "./pages/project/SingleProjectPage";
 import ProfilePage from "./pages/profile/ProfilePage";
 import ConfigureProfile from "./pages/profile/ConfigureProfile";
+import UserProfilePage from "./pages/profile/UserProfilePage";
+import ApplicantsPage from "./pages/applicants/ApplicantsPage";
 
 const router = createBrowserRouter([
   {
@@ -24,10 +26,15 @@ const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: "post", element: <PostsPage /> },
       { path: "teams", element: <TeamsPage /> },
-      { path: "inbox", element: <InboxPage /> },
+
       { path: "project/:id", element: <SingleProjectPage /> },
       { path: "profile", element: <ProfilePage /> },
       { path: "configure", element: <ConfigureProfile /> },
+      { path: "user/:id", element: <UserProfilePage /> },
+      {
+        path: "proposal/:id/",
+        element: <ApplicantsPage />,
+      },
     ],
   },
   { path: "/welcome", element: <WelcomePage /> },

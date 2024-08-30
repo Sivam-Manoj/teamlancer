@@ -1,7 +1,11 @@
 import { motion } from "framer-motion";
 import moment from "moment";
-import { useParams } from "react-router-dom";
-import { useGetSinglePostApiQuery } from "../../store/api/post/postApiSlice";
+import { Link, useParams } from "react-router-dom";
+import {
+  useGetSinglePostApiQuery,
+  useSendProposalApiMutation,
+} from "../../store/api/post/postApiSlice";
+import { toast } from "react-toastify";
 
 const SingleProjectPage = () => {
   const { id } = useParams();
@@ -11,12 +15,58 @@ const SingleProjectPage = () => {
     isLoading,
   } = useGetSinglePostApiQuery(id);
 
+  const [sendProposalApi] = useSendProposalApiMutation();
+  const handleSendProposal = async () => {
+    try {
+      await sendProposalApi(id).unwrap();
+      toast.success("Proposal send succesfully");
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error(isError);
+    }
+  };
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <motion.div
+        className="flex items-center justify-center h-screen"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-opacity-50"></div>
+          <p className="mt-4 text-xl font-semibold text-blue-500">
+            Loading posts...
+          </p>
+        </div>
+      </motion.div>
+    );
   }
 
   if (isError) {
-    return <div>Error loading the post. Please try again later.</div>;
+    return (
+      <motion.div
+        className="flex items-center justify-center h-screen"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="text-center">
+          <motion.div
+            className="text-red-500 text-6xl"
+            animate={{
+              rotate: [0, -10, 10, -10, 0],
+              transition: { repeat: Infinity, duration: 1.5 },
+            }}
+          >
+            &#9888;
+          </motion.div>
+          <p className="mt-4 text-lg md:text-xl font-semibold text-red-500">
+            Error geting posts. check you connection.
+          </p>
+        </div>
+      </motion.div>
+    );
   }
 
   return (
@@ -30,19 +80,25 @@ const SingleProjectPage = () => {
         {/* User Information */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
-            <img
-              src={postItem.image}
-              alt={postItem.firstname}
-              className="w-16 h-16 rounded-full object-cover mr-4"
-            />
+            <Link to={`/user/${postItem.user}`}>
+              <img
+                src={postItem.image}
+                alt={postItem.firstname}
+                className="w-16 h-16 rounded-full object-cover mr-4"
+              />
+            </Link>
+
             <div>
-              <h2 className="text-lg font-bold">
-                {postItem.firstname} {postItem.lastname}
-              </h2>
+              <Link to={`/user/${postItem.user}`}>
+                <h2 className="text-lg font-bold">
+                  {postItem.firstname} {postItem.lastname}
+                </h2>
+              </Link>
+              {postItem.timeAgo}
             </div>
           </div>
           <p className="text-gray-600 text-sm">
-            <span className="font-semibold">posted:</span>{" "}
+            <span className="font-semibold"></span>{" "}
             {moment(postItem.createdAt).format("YYYY-MM-DD")}
           </p>
         </div>
@@ -123,6 +179,9 @@ const SingleProjectPage = () => {
             className="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              handleSendProposal();
+            }}
           >
             Send Proposal
           </motion.button>

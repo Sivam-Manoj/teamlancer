@@ -40,14 +40,6 @@ const ConfigureProfile: React.FC = () => {
 
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
 
-  if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (user) {
-    return <Navigate to="/" replace />;
-  }
-
   const onSubmit: SubmitHandler<ProfileFormValues> = async (data) => {
     try {
       // Create FormData object
@@ -75,12 +67,56 @@ const ConfigureProfile: React.FC = () => {
     }
   };
 
-  if (isError) {
-    return <div>Error occurred while creating profile!</div>;
+  if (isLoading) {
+    return (
+      <motion.div
+        className="flex items-center justify-center h-screen"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-opacity-50"></div>
+          <p className="mt-4 text-xl font-semibold text-blue-500">
+            Loading posts...
+          </p>
+        </div>
+      </motion.div>
+    );
   }
 
-  if (isLoading) {
-    return <div>Loading...</div>;
+  if (isError) {
+    return (
+      <motion.div
+        className="flex items-center justify-center h-screen"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="text-center">
+          <motion.div
+            className="text-red-500 text-6xl"
+            animate={{
+              rotate: [0, -10, 10, -10, 0],
+              transition: { repeat: Infinity, duration: 1.5 },
+            }}
+          >
+            &#9888;
+          </motion.div>
+          <p className="mt-4 text-xl font-semibold text-red-500">
+            Error fetching posts.
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (user && isLoggedIn) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (!isLoggedIn && !user) {
+    return <Navigate to="/login" replace />;
   }
 
   return (

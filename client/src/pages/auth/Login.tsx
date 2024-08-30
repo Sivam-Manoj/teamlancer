@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FacebookIcon, GitHubIcon, GoogleIcon } from "../../icons/SvgIcons";
+
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useLoginApiMutation } from "../../store/api/auth/authUserApiSlice";
 import { toast } from "react-toastify";
@@ -33,6 +33,7 @@ const LoginPage = () => {
       dispatch(login(response));
       toast.success("Logged in successfully");
       navigate("/");
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error("Login failed. Please check your credentials.");
     }
@@ -121,38 +122,6 @@ const LoginPage = () => {
             {isLoading ? "Logging in..." : "Login"}
           </motion.button>
         </form>
-
-        <div className="my-6 text-center text-gray-500">or login with</div>
-
-        <div className="space-y-4">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center justify-center w-full bg-white border border-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-200"
-            onClick={() => console.log("Login with Google")}
-          >
-            <GoogleIcon />
-            Login with Google
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center justify-center w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200"
-            onClick={() => console.log("Login with Facebook")}
-          >
-            <FacebookIcon />
-            Login with Facebook
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center justify-center w-full bg-gray-800 text-white py-2 rounded-lg font-semibold hover:bg-gray-900 transition duration-200"
-            onClick={() => console.log("Login with GitHub")}
-          >
-            <GitHubIcon />
-            Login with GitHub
-          </motion.button>
-        </div>
 
         <div className="mt-6 text-center">
           <p className="text-gray-500">

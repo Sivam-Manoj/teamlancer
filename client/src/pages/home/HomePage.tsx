@@ -4,7 +4,7 @@ import { RootState } from "../../store/store";
 import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Post from "../../components/home/Post";
-import Ads from "../../components/Ads";
+
 import { useGetPostApiQuery } from "../../store/api/post/postApiSlice";
 import { useGetUserProfileApiQuery } from "../../store/api/user/userApiSlice";
 
@@ -57,7 +57,7 @@ const HomePage: React.FC = () => {
     );
   }
 
-  if (!user) {
+  if (!user && isLoggedIn) {
     return <Navigate to="/configure" replace />;
   }
 
@@ -105,12 +105,20 @@ const HomePage: React.FC = () => {
     );
   }
 
+  if (!isLoggedIn && !user) {
+    return <Navigate to="/welcome" replace />;
+  }
+
+  if (!isLoggedIn && user) {
+    return <Navigate to="/login" replace />;
+  }
   return (
     <>
-      <div className="posts-container">
+      <div className="posts-container min-h-[80vh]">
         {posts.map((post: PostData) => (
           <Post
             key={post._id}
+            user={post.user}
             postId={post._id}
             firstname={post.firstname}
             lastname={post.lastname}
@@ -126,10 +134,10 @@ const HomePage: React.FC = () => {
             updatedAt={post.updatedAt}
             timeAgo={post.timeAgo}
             deadline={post.deadline}
+            userId={post.user}
           />
         ))}
       </div>
-      <Ads />
     </>
   );
 };

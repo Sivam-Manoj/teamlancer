@@ -18,9 +18,25 @@ const userApiSlice = apiSlice.injectEndpoints({
         body: { name, email, mobile, password },
       }),
     }),
+    logoutApi: builder.mutation({
+      query: () => ({
+        url: `${USER_ENDPOINTS}/logout`,
+        method: "POST",
+      }),
+    }),
+    getUserIdApi: builder.mutation({
+      query: () => ({
+        url: `${USER_ENDPOINTS}/get-user-id`,
+        method: "POST",
+      }),
+    }),
   }),
 });
 
-export const { useLoginApiMutation, useResgisterUserApiMutation } =
-  userApiSlice;
+export const {
+  useLoginApiMutation,
+  useResgisterUserApiMutation,
+  useLogoutApiMutation,
+  useGetUserIdApiMutation,
+} = userApiSlice;
 export default userApiSlice.reducer;

@@ -15,7 +15,7 @@ const PostsPage = () => {
     deadline: "", // Added deadline to formData
   });
 
-  const [createPostApi] = useCreatePostApiMutation();
+  const [createPostApi, { isLoading, isError }] = useCreatePostApiMutation();
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -63,6 +63,49 @@ const PostsPage = () => {
       toast.error("Error while creating post");
     }
   };
+  if (isLoading) {
+    return (
+      <motion.div
+        className="flex items-center justify-center h-screen"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-opacity-50"></div>
+          <p className="mt-4 text-xl font-semibold text-blue-500">
+            Loading posts...
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <motion.div
+        className="flex items-center justify-center h-screen"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="text-center">
+          <motion.div
+            className="text-red-500 text-6xl"
+            animate={{
+              rotate: [0, -10, 10, -10, 0],
+              transition: { repeat: Infinity, duration: 1.5 },
+            }}
+          >
+            &#9888;
+          </motion.div>
+          <p className="mt-4 text-xl font-semibold text-red-500">
+            Error fetching posts.
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">

@@ -23,7 +23,10 @@ export const newUser = asyncHandler(async (req, res) => {
     createToken(user._id, res);
     res
       .status(200)
-      .json({ message: `user ${user.name} registered successfully` });
+      .json({
+        user: user._id,
+        message: `user ${user.name} registered successfully`,
+      });
   } catch (error) {
     throw new Error(error.message);
   }
@@ -60,4 +63,19 @@ export const loginUser = asyncHandler(async (req, res) => {
   } catch (error) {
     throw new Error(error);
   }
+});
+
+export const logout = asyncHandler(async (req, res) => {
+  res.cookie("token", "", { maxAge: 0 });
+  res.status(204).json({ message: "User logout successful" });
+});
+
+export const getUserId = asyncHandler(async (req, res) => {
+  const id = req.userId;
+  console.log(id);
+  if (!id) {
+    res.status(404);
+    throw new Error("ID not found");
+  }
+  res.status(200).send(id.toString());
 });
